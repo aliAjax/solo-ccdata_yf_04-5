@@ -1,5 +1,1289 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>License Lens · 依赖许可证分析</title><style>
-:root{--bg:#f4f7fb;--ink:#15202b;--muted:#718096;--line:#dfe6ef;--blue:#3977f6;--green:#1b9c78;--amber:#c98b18;--red:#d95459}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px Inter,system-ui,sans-serif}.app{max-width:1280px;margin:auto;padding:26px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.brand{display:flex;align-items:center;gap:11px}.logo{width:38px;height:38px;border-radius:11px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}.brand h1{margin:0;font-size:21px}.brand small{color:var(--muted)}.actions{display:flex;gap:8px}button{border:1px solid var(--line);background:white;color:var(--ink);padding:9px 13px;border-radius:8px;cursor:pointer}button:hover{border-color:var(--blue);color:var(--blue)}.primary{background:var(--blue);border-color:var(--blue);color:white;font-weight:700}.summary{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px}.metric{background:white;border:1px solid var(--line);border-radius:12px;padding:17px}.metric small{display:block;color:var(--muted);margin-bottom:7px}.metric b{font-size:25px}.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}.grid{display:grid;grid-template-columns:330px 1fr;gap:16px}.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:17px}.panel h3{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0 0 13px}.textarea{width:100%;min-height:180px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:11px;line-height:1.6;font:12px ui-monospace,monospace}.drop{border:1px dashed #aab9cb;border-radius:9px;padding:15px;text-align:center;color:var(--muted);margin-top:10px}.drop input{display:none}.drop label{color:var(--blue);cursor:pointer}.hint{color:var(--muted);font-size:12px;line-height:1.6}.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}.filters button{font-size:12px;padding:6px 9px}.filters button.active{background:var(--ink);color:#fff}.row{display:grid;grid-template-columns:1.3fr .8fr .9fr 1fr 70px;align-items:center;gap:12px;border-top:1px solid var(--line);padding:14px 4px}.row.head{border-top:0;padding-top:0;color:var(--muted);font-size:12px}.pkg{display:flex;align-items:center;gap:9px}.pkgicon{width:28px;height:28px;border-radius:7px;background:#e8efff;color:var(--blue);display:grid;place-items:center;font-weight:700}.version{color:var(--muted);font-size:12px}.license{font-family:ui-monospace,monospace;font-size:12px}.badge{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px}.ok{background:#e3f7ef;color:#147455}.review{background:#fff3d8;color:#996a0d}.risk{background:#ffe3e5;color:#a93942}.inspect{color:var(--blue);font-size:12px;cursor:pointer}.notice{background:#fff9e9;border:1px solid #f0d89d;border-radius:9px;padding:12px;color:#835d12;margin-top:15px;font-size:12px;line-height:1.6}.details{margin-top:15px;background:#f7f9fc;border-radius:9px;padding:13px;display:none}.details h4{margin:0 0 7px}.details p{margin:5px 0;color:var(--muted);line-height:1.5}.manual{display:flex;gap:8px;margin-top:12px}.manual input,.manual select{border:1px solid var(--line);border-radius:7px;padding:8px;min-width:0}.status{color:var(--green);font-size:12px;min-height:18px;margin-top:8px}@media(max-width:850px){.summary{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.row{grid-template-columns:1.2fr .7fr .8fr 1fr 50px}}@media(max-width:600px){.app{padding:13px}.top{align-items:flex-start;gap:10px;flex-direction:column}.summary{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 70px 70px}.row>:nth-child(3),.row>:nth-child(4){display:none}}
-</style></head><body><main class="app"><header class="top"><div class="brand"><div class="logo">L</div><div><h1>License Lens</h1><small>依赖许可证兼容性分析</small></div></div><div class="actions"><button id="reset">重置示例</button><button id="export" class="primary">导出 Markdown</button></div></header><section class="summary"><div class="metric"><small>已分析依赖</small><b id="total">8</b></div><div class="metric"><small>兼容通过</small><b class="good" id="pass">5</b></div><div class="metric"><small>需要复核</small><b class="warn" id="review">2</b></div><div class="metric"><small>高风险冲突</small><b class="bad" id="risk">1</b></div></section><section class="grid"><aside class="panel"><h3>导入依赖清单</h3><textarea id="input" class="textarea" spellcheck="false"></textarea><button id="analyze" class="primary" style="width:100%;margin-top:10px">开始分析</button><div class="drop">拖放 package.json 或许可证清单<br><label for="file">选择文件<input id="file" type="file" accept=".txt,.json,.csv,.lock"></label></div><p class="hint">支持每行一个依赖，格式：<code>名称@版本 许可证</code>。未识别许可证会标记为需复核。</p><div class="manual"><input id="manualName" placeholder="依赖名"><select id="manualLicense"><option>MIT</option><option>Apache-2.0</option><option>GPL-3.0</option><option>BSD-3-Clause</option><option>Proprietary</option></select><button id="add">添加</button></div><div class="status" id="status"></div></aside><section class="panel"><h3>分析结果</h3><div class="filters"><button class="active" data-filter="all">全部 <span id="fAll">8</span></button><button data-filter="ok">兼容通过</button><button data-filter="review">需复核</button><button data-filter="risk">高风险</button><input id="search" placeholder="搜索依赖…" style="margin-left:auto;border:1px solid var(--line);border-radius:7px;padding:7px;max-width:140px"></div><div class="row head"><div>依赖</div><div>版本</div><div>许可证</div><div>结论</div><div></div></div><div id="results"></div><div class="notice"><b>兼容性提示</b><br>GPL-3.0 组件要求衍生作品以 GPL 方式发布；专有许可证通常不能与开源分发直接兼容。请在发布前让法务复核结论。</div><div class="details" id="details"></div></section></section></main><script>
-const seed=['react@18.3.1 MIT','lodash@4.17.21 MIT','sharp@0.33.4 Apache-2.0','some-proprietary@1.0.0 Proprietary','legacy-gpl@2.4.0 GPL-3.0','axios@1.7.2 MIT','zod@3.23.8 MIT','font-awesome@6.5.2 CC-BY-4.0'].join('\n');let rows=[],filter='all';const known={MIT:'ok',Apache:'ok','Apache-2.0':'ok','BSD-3-Clause':'ok','CC-BY-4.0':'review','GPL-3.0':'risk',Proprietary:'review'};document.querySelector('#input').value=seed;function parse(){rows=document.querySelector('#input').value.split(/\n|,/).map(s=>s.trim()).filter(Boolean).map((s,i)=>{let m=s.match(/^(.+?)@([\w.-]+)\s+(.+)$/);let name=m?m[1]:s,version=m?m[2]:'—',lic=m?m[3]:'Unknown';let state=known[lic]||'review';return{id:i,name,version,lic,state,reason:state==='ok'?'许可证允许在保留声明后分发':state==='risk'?'Copyleft 条款可能与本项目分发方式冲突':'需要确认许可证文本与使用方式'}});render()}function render(){let q=document.querySelector('#search').value.toLowerCase(),out=document.querySelector('#results');out.innerHTML='';rows.filter(r=>(filter==='all'||r.state===filter)&&r.name.toLowerCase().includes(q)).forEach(r=>{let d=document.createElement('div');d.className='row';d.innerHTML=`<div class="pkg"><div class="pkgicon">◈</div><div><b>${r.name}</b><br><span class="version">package dependency</span></div></div><div class="version">${r.version}</div><div class="license">${r.lic}</div><div><span class="badge ${r.state}">${r.state==='ok'?'兼容通过':r.state==='risk'?'高风险':'需复核'}</span></div><div class="inspect" data-id="${r.id}">查看依据</div>`;out.append(d)});document.querySelector('#total').textContent=rows.length;document.querySelector('#pass').textContent=rows.filter(r=>r.state==='ok').length;document.querySelector('#review').textContent=rows.filter(r=>r.state==='review').length;document.querySelector('#risk').textContent=rows.filter(r=>r.state==='risk').length;document.querySelector('#fAll').textContent=rows.length}document.querySelector('#analyze').onclick=()=>{parse();document.querySelector('#status').textContent='分析完成 · 已检查 '+rows.length+' 条依赖'};document.querySelector('#search').oninput=render;document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()});document.querySelector('#results').onclick=e=>{let id=e.target.dataset.id;if(id===undefined)return;let r=rows.find(x=>x.id==id),d=document.querySelector('#details');d.style.display='block';d.innerHTML=`<h4>${r.name} · ${r.lic}</h4><p>${r.reason}</p><p>分析依据：识别到 SPDX 标识 <code>${r.lic}</code>，结合常见分发条款给出初步结论。</p>`};document.querySelector('#add').onclick=()=>{let n=document.querySelector('#manualName').value.trim();if(n){document.querySelector('#input').value+=`\n${n}@1.0.0 ${document.querySelector('#manualLicense').value}`;parse();document.querySelector('#manualName').value=''}};document.querySelector('#file').onchange=e=>{let f=e.target.files[0];if(f){let r=new FileReader();r.onload=()=>{document.querySelector('#input').value=r.result;parse()};r.readAsText(f)}};document.querySelector('#reset').onclick=()=>{document.querySelector('#input').value=seed;parse()};document.querySelector('#export').onclick=()=>{let md='# License Lens 分析报告\n\n| 依赖 | 版本 | 许可证 | 结论 |\n|---|---|---|---|\n'+rows.map(r=>`| ${r.name} | ${r.version} | ${r.lic} | ${r.state} |`).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));a.download='license-report.md';a.click();document.querySelector('#status').textContent='Markdown 报告已导出'};parse();
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>冷链审计台 · 离线样本流转</title>
+<style>
+:root{
+  --bg:#f4f7fb; --ink:#15202b; --muted:#718096; --line:#dfe6ef;
+  --blue:#3977f6; --green:#1b9c78; --amber:#c98b18; --red:#d95459; --purple:#7a5af0;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-text-size-adjust:100%}
+.app{max-width:1320px;margin:auto;padding:24px 26px 60px}
+h1,h2,h3,h4{margin:0}
+button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 13px;border-radius:8px;cursor:pointer}
+button:hover{border-color:var(--blue);color:var(--blue)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.primary:hover{color:#fff;background:#2c66dc;border-color:#2c66dc}
+.danger{color:var(--red);border-color:#e7b9bb}
+.danger:hover{background:#fdecee;color:var(--red);border-color:var(--red)}
+.ghost{background:transparent}
+.small{padding:6px 10px;font-size:12px;border-radius:7px}
+input,select,textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink);width:100%;min-width:0}
+textarea{resize:vertical}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field{margin-bottom:10px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ---------- header ---------- */
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:40px;height:40px;border-radius:11px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px}
+.brand h1{font-size:20px}
+.brand small{color:var(--muted)}
+.offline{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 11px;margin-left:10px}
+.offline i{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- metrics ---------- */
+.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-bottom:16px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+.metric small{display:block;color:var(--muted);margin-bottom:6px;font-size:12px}
+.metric b{font-size:23px}
+.metric.s-received b{color:var(--muted)}
+.metric.s-stored b{color:var(--blue)}
+.metric.s-transit b{color:var(--purple)}
+.metric.s-testing b{color:var(--amber)}
+.metric.s-quarantined b{color:var(--red)}
+.metric.s-released b{color:var(--green)}
+
+/* ---------- layout ---------- */
+.grid{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.panel h3{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel h3 .tag{font-size:11px;background:#f1f5fb;color:var(--muted);border-radius:6px;padding:2px 7px;letter-spacing:0;text-transform:none}
+
+/* ---------- filters / list ---------- */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.chip{font-size:12px;padding:6px 10px;border-radius:99px;background:#f4f7fb;border-color:transparent;color:var(--muted)}
+.chip:hover{border-color:var(--blue)}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip b{font-weight:700;margin-left:3px}
+.searchbox{margin-left:auto;position:relative;min-width:170px;max-width:230px;flex:1}
+.searchbox input{padding-left:30px;font-size:13px}
+.searchbox svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.row{display:grid;grid-template-columns:minmax(0,1.5fr) 90px 108px 84px 78px;gap:10px;align-items:center;border-top:1px solid var(--line);padding:12px 4px;width:100%;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;border-radius:0}
+.row:hover{background:#f8fafd}
+.row.sel{background:#eef4ff;box-shadow:inset 3px 0 0 var(--blue)}
+.row.head{padding:0 4px 4px;color:var(--muted);font-size:12px;pointer-events:none}
+.row.head:hover{background:none}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;font-weight:700;word-break:break-all}
+.sub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vol{font-variant-numeric:tabular-nums;font-size:13px}
+.badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;white-space:nowrap;font-weight:600}
+.b-received{background:#eef1f5;color:#5a6b7d}
+.b-stored{background:#e8efff;color:#2862d6}
+.b-transit{background:#efe9fe;color:#5d43d0}
+.b-testing{background:#fff3d8;color:#996a0d}
+.b-quarantined{background:#ffe3e5;color:#a93942}
+.b-released{background:#e3f7ef;color:#147455}
+.b-exhausted{background:#e9edf2;color:#69788a}
+.b-destroyed{background:#3a4450;color:#fff}
+.kind{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap}
+
+/* ---------- detail ---------- */
+.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.detail-head h2{font-size:17px;font-family:ui-monospace,Menlo,monospace}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 16px;margin:12px 0}
+.meta div small{display:block;color:var(--muted);font-size:11px}
+.meta div span{font-size:13px}
+.alert{border-radius:9px;padding:10px 12px;font-size:12.5px;margin:10px 0;line-height:1.55}
+.alert.red{background:#fdecee;border:1px solid #f0b9bd;color:#8c2f36}
+.alert.amber{background:#fff8e8;border:1px solid #eed49a;color:#835d12}
+.alert.info{background:#eef4ff;border:1px solid #bdd2fb;color:#28508f}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;flex-wrap:wrap}
+.tab{border:0;background:none;padding:8px 12px;color:var(--muted);border-bottom:2px solid transparent;border-radius:0}
+.tab.active{color:var(--ink);border-bottom-color:var(--blue);font-weight:700}
+.tab:hover{color:var(--blue)}
+
+.tree ul{list-style:none;margin:0;padding-left:18px;border-left:1px dashed var(--line)}
+.tree>ul{padding-left:0;border-left:0}
+.tree li{padding:5px 0 5px 12px;position:relative}
+.tree .tnode{display:inline-flex;gap:8px;align-items:center;cursor:pointer;font-size:13px}
+.tree .tnode.sel code{color:var(--blue)}
+.tree code{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+
+/* ---------- history ---------- */
+.log{max-height:520px;overflow:auto}
+.evt{display:grid;grid-template-columns:150px 92px 1fr;gap:10px;padding:10px 4px;border-top:1px solid var(--line);font-size:12.5px;align-items:start}
+.evt:first-child{border-top:0}
+.evt time{color:var(--muted);font-variant-numeric:tabular-nums}
+.etype{font-weight:700;white-space:nowrap}
+.evt p{margin:0;color:#3c4a59;line-height:1.55;word-break:break-word}
+.evt .hash{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#9aa8b8;word-break:break-all}
+.t-register{color:var(--ink)}
+.t-split{color:var(--purple)}
+.t-merge{color:var(--purple)}
+.t-handover{color:var(--blue)}
+.t-breach{color:var(--red)}
+.t-cascade{color:var(--red)}
+.t-dispose{color:var(--amber)}
+.t-exhaust{color:#69788a}
+.t-destroy{color:var(--ink)}
+.breachflag{color:var(--red);font-weight:700}
+.temp-ok{color:var(--green);font-weight:600}
+.temp-bad{color:var(--red);font-weight:700}
+
+/* ---------- audit tab ---------- */
+.verify{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;padding:11px 13px;border-radius:9px;margin-bottom:12px}
+.verify.ok{background:#e3f7ef;border:1px solid #a9e2cf;color:#147455}
+.verify.bad{background:#ffe3e5;border:1px solid #f0b9bd;color:#a93942}
+.verify b{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+
+.empty{color:var(--muted);text-align:center;padding:34px 10px;font-size:13px}
+.empty.detail-empty{padding:60px 20px}
+.hint{color:var(--muted);font-size:12px;line-height:1.6;margin:6px 0 0}
+.hint code{background:#f1f5fb;border-radius:4px;padding:1px 5px}
+.error{background:#fdecee;border:1px solid #f0b9bd;color:#8c2f36;border-radius:8px;padding:9px 11px;font-size:12.5px;margin-top:9px;display:none}
+.error.show{display:block}
+.toast-wrap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(92vw,560px)}
+.toast{background:var(--ink);color:#fff;border-radius:9px;padding:10px 16px;font-size:13px;box-shadow:0 8px 30px rgba(20,32,43,.25);max-width:100%}
+.toast.err{background:var(--red)}
+.toast.ok{background:var(--green)}
+
+/* ---------- modal ---------- */
+.modal-back{position:fixed;inset:0;background:rgba(21,32,43,.42);display:grid;place-items:center;z-index:60;padding:16px}
+.modal{background:#fff;border-radius:13px;width:min(560px,100%);max-height:88vh;overflow:auto;padding:18px 18px 16px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.modal-head h2{font-size:16px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.picklist{border:1px solid var(--line);border-radius:9px;max-height:260px;overflow:auto;margin:6px 0 4px}
+.pick{display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;border-bottom:1px solid var(--line);border-radius:0;width:100%;background:none;text-align:left;cursor:pointer}
+.pick:last-child{border-bottom:0}
+.pick:hover{background:#f4f7fb}
+.pick input{width:auto}
+.pick .pick-main{flex:1;min-width:0}
+.pick .sub{white-space:normal}
+
+@media(max-width:980px){
+  .summary{grid-template-columns:repeat(3,1fr)}
+  .grid{display:flex;flex-direction:column}
+  .grid>div{display:contents}
+  #listPanel{order:1}
+  #actionPanel{order:2}
+  #detailPanel{order:3}
+  #regPanel{order:4}
+}
+@media(max-width:640px){
+  .app{padding:14px 12px 80px}
+  .summary{grid-template-columns:repeat(2,1fr);gap:8px}
+  .metric{padding:11px 12px}
+  .metric b{font-size:20px}
+  .top .brand h1{font-size:17px}
+  .row{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:11px 2px}
+  .row .col-kind{display:none}
+  .row .col-status{grid-row:1 / span 2;grid-column:2;align-self:center}
+  .evt{grid-template-columns:1fr;gap:3px}
+  .evt time{font-size:11.5px}
+  .field-row{grid-template-columns:1fr}
+  .searchbox{max-width:none;margin-left:0}
+  .filters .searchbox{width:100%}
+  .actions button{padding:8px 10px;font-size:12.5px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">冷</div>
+      <div>
+        <h1>冷链审计台</h1>
+        <small>离线样本流转与审计 · 纯前端 · 数据仅存本机 <span class="offline"><i></i>OFFLINE</span></small>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="tabSamplesBtn" class="small primary">样本台账</button>
+      <button id="tabAuditBtn" class="small">审计记录</button>
+      <button id="exportBtn" class="small">导出 JSON</button>
+      <button id="importBtn" class="small">导入</button>
+      <input id="importFile" type="file" accept="application/json,.json" hidden>
+      <button id="resetBtn" class="small danger">重置示例</button>
+    </div>
+  </header>
+
+  <section class="summary" id="metrics"></section>
+
+  <div id="viewSamples">
+    <div class="grid">
+      <!-- 左列：登记 + 当前样本操作 -->
+      <div>
+        <section class="panel" id="regPanel">
+          <h3>登记样本批次 <span class="tag">母管 / 独立分装均可</span></h3>
+          <form id="regForm">
+            <div class="field"><label for="rName">样本名称 / 批次描述</label><input id="rName" required placeholder="如：2026-09 核酸批次 A"></div>
+            <div class="field-row">
+              <div class="field"><label for="rCode">样本编号（留空自动生成）</label><input id="rCode" placeholder="B-260915-01" autocomplete="off"></div>
+              <div class="field"><label for="rKind">类型</label>
+                <select id="rKind"><option value="batch">母管批次</option><option value="aliquot">独立分装管</option></select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="rVolume">初始量</label><input id="rVolume" type="number" min="0" step="any" inputmode="decimal" required value="10"></div>
+              <div class="field"><label for="rUnit">单位</label><select id="rUnit"><option>mL</option><option>管</option><option>μL</option><option>份</option></select></div>
+            </div>
+            <div class="field"><label for="rProfile">温区要求</label>
+              <select id="rProfile"></select>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="rActor">接收经手人</label><input id="rActor" required placeholder="姓名 / 工号" autocomplete="name"></div>
+              <div class="field"><label for="rLoc">接收位置</label><input id="rLoc" required placeholder="如：北门收货口"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="rTemp">接收温度 °C（冷链交接必录）</label><input id="rTemp" type="number" step="any" inputmode="decimal" required value="4"></div>
+              <div class="field"><label for="rTime">时间</label><input id="rTime" type="datetime-local" step="1" required></div>
+            </div>
+            <button class="primary" type="submit" style="width:100%">登记批次</button>
+            <div class="error" id="regError"></div>
+            <p class="hint">登记即第一条不可修改的交接记录。接收温度越界时样本直接进入<b>隔离</b>。</p>
+          </form>
+        </section>
+
+        <section class="panel" id="actionPanel"></section>
+      </div>
+
+      <!-- 右列：台账 + 详情 -->
+      <div>
+        <section class="panel" id="listPanel">
+          <h3>样本台账 <span class="tag" id="listCount"></span></h3>
+          <div class="filters" id="filters"></div>
+          <div class="row head">
+            <div>样本</div><div class="col-vol">剩余量</div><div class="col-kind">温区</div><div class="col-status">状态</div><div class="col-act"></div>
+          </div>
+          <div id="sampleList"></div>
+        </section>
+
+        <section class="panel" id="detailPanel"></section>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewAudit" hidden>
+    <section class="panel">
+      <h3>全局审计记录 <span class="tag">只可追加 · 哈希链校验</span></h3>
+      <div id="verifyBox"></div>
+      <div class="filters" id="auditFilters">
+        <button type="button" class="chip active" data-et="all">全部</button>
+        <button type="button" class="chip" data-et="register">登记</button>
+        <button type="button" class="chip" data-et="split">分装</button>
+        <button type="button" class="chip" data-et="merge">合并</button>
+        <button type="button" class="chip" data-et="handover">交接</button>
+        <button type="button" class="chip" data-et="breach">温度越界</button>
+        <button type="button" class="chip" data-et="cascade">联动隔离</button>
+        <button type="button" class="chip" data-et="dispose">处置</button>
+        <button type="button" class="chip" data-et="exhaust">耗尽</button>
+        <button type="button" class="chip" data-et="destroy">销毁</button>
+      </div>
+      <div class="field" style="max-width:280px;margin:0 0 8px"><input id="auditSearch" placeholder="筛选编号 / 经手人 / 位置…"></div>
+      <div class="log" id="auditLog"></div>
+      <p class="hint">每条记录保存上一条哈希与本条哈希（FNV-1a 校验链，对整条事件内容计算）。任何对历史的修改或删除都会在校验时被发现。导出 JSON 即完整事件流，可在另一台设备导入后继续追加。</p>
+    </section>
+  </div>
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="modalRoot"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+ * 冷链审计台 —— 纯前端、离线、无后端
+ * 事件溯源：样本当前状态 / 剩余量 / 谱系全部由“只追加事件”重放得到。
+ * ===================================================================== */
+
+/* ---------------- 常量：温区 / 状态机 / 动作 ---------------- */
+const PROFILES = [
+  { key: 'ultra',   name: '超低温 -80~-60°C', min: -80, max: -60 },
+  { key: 'frozen',  name: '深冻 -80~-20°C',   min: -80, max: -20 },
+  { key: 'chill',   name: '冷藏 2–8°C',       min: 2,   max: 8  },
+  { key: 'ambient', name: '常温 15–25°C',     min: 15,  max: 25 }
+];
+const STATUS = ['received','stored','transit','testing','quarantined','released','exhausted','destroyed'];
+const STATUS_LABEL = {
+  received:'已接收', stored:'在库', transit:'转运中', testing:'检测中',
+  quarantined:'隔离', released:'已放行', exhausted:'已耗尽', destroyed:'已销毁'
+};
+/* 合法跳转白名单；不在表内的目标状态一律拒绝（终态无任何出口）。 */
+const TRANSITIONS = {
+  received:     ['stored','transit','testing','quarantined','released','destroyed'],
+  stored:       ['transit','testing','quarantined','released','exhausted','destroyed'],
+  transit:      ['stored','transit','testing','quarantined','destroyed'],   // ->stored 即“到达/退回入库”
+  testing:      ['stored','quarantined','released','exhausted','destroyed'],
+  quarantined:  ['stored','destroyed'],   // 必须先“处置”才能回 stored，之后才能放行
+  released:     ['transit','testing','exhausted','destroyed'],
+  exhausted:    [],
+  destroyed:    []
+};
+/* 动作：target = 申请进入的状态；needTemp = 冷链交接必录温度 */
+const ACTIONS = {
+  store:    { label:'入库',          target:'stored',      needTemp:true  },
+  ship:     { label:'发运转运',       target:'transit',     needTemp:true  },
+  test:     { label:'送检',          target:'testing',     needTemp:false },
+  receive:  { label:'到达 / 退回入库', target:'stored',      needTemp:true  },
+  release:  { label:'放行',          target:'released',    needTemp:false },
+  exhaust:  { label:'耗尽',          target:'exhausted',   needTemp:false },
+  destroy:  { label:'销毁',          target:'destroyed',   needTemp:false }
+};
+const EV_LABEL = {
+  register:'登记', split:'分装', merge:'合并', handover:'交接',
+  breach:'温度越界', cascade:'联动隔离', dispose:'隔离处置', exhaust:'耗尽', destroy:'销毁'
+};
+const TERMINAL = new Set(['exhausted','destroyed']);
+const STORAGE_KEY = 'coldchain-audit-events-v1';
+const ANCHOR_KEY = 'coldchain-audit-events-v1-anchor';
+const PREFS_KEY = 'coldchain-audit-prefs-v1';
+
+/* ---------------- 工具 ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nowLocal = () => {
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+const fmtTime = iso => iso ? String(iso).replace('T',' ').slice(0,19) : '—';
+const inRange = (temp, prof) => temp === null || temp === undefined || isNaN(temp) ? null : (temp >= prof.min && temp <= prof.max);
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+/* FNV-1a 32 位校验链：离线同步计算，用于发现对历史记录的任何改动/删除。 */
+function fnv1a(str){
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return ('0000000' + h.toString(16)).slice(-8);
+}
+function canonical(ev){
+  const rest = Object.assign({}, ev);
+  delete rest.hash; delete rest.prev;
+  return JSON.stringify(rest, Object.keys(rest).sort());
+}
+function sealEvent(ev){
+  ev.prev = events.length ? events[events.length - 1].hash : 'GENESIS';
+  ev.hash = fnv1a(ev.prev + '|' + canonical(ev));
+  return ev;
+}
+let seq = 1;
+function mkEvent(partial){
+  const ev = Object.assign({ id: 'E' + String(seq).padStart(4,'0'), seq }, partial);
+  if (ev.at === undefined) ev.at = new Date().toISOString();
+  seq++;
+  return sealEvent(ev);
+}
+function appendEvent(ev){ events.push(ev); persist(); }
+function tailHash(){ return events.length ? events[events.length-1].hash : 'GENESIS'; }
+function writeAnchor(){
+  try { localStorage.setItem(ANCHOR_KEY, JSON.stringify({ count: events.length, tail: tailHash(), lastId: events.length ? events[events.length-1].id : null })); } catch {}
+}
+function readAnchor(){
+  try { const a = JSON.parse(localStorage.getItem(ANCHOR_KEY) || 'null'); return a || null; } catch { return null; }
+}
+function persist(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    writeAnchor();
+  } catch(e){ toast('持久化失败：' + e.message, 'err'); }
+}
+
+/* ---------------- 示例事件流（固定历史时间，链完整） ---------------- */
+function seedEvents(){
+  const out = [];
+  const add = ev => {
+    ev.prev = out.length ? out[out.length-1].hash : 'GENESIS';
+    ev.hash = fnv1a(ev.prev + '|' + canonical(ev));
+    out.push(ev);
+  };
+  const d = '2026-09-';
+  /* 批次1：正常流转，母管 + 2 分装，其中 1 管检测耗尽 */
+  add({ id:'E0001', seq:1, type:'register', at:d+'10T01:05:00.000Z', code:'B-260910-01', name:'核酸初筛批次 ①', kind:'batch', volume:10, unit:'mL', profile:'chill', actor:'王敏 W021', loc:'北门收货口', temp:4.2, breach:false });
+  add({ id:'E0002', seq:2, type:'handover', at:d+'10T01:30:00.000Z', code:'B-260910-01', action:'store', fromStatus:'received', toStatus:'stored', actor:'王敏 W021', loc:'冷库 A-02', temp:5.1, breach:false });
+  add({ id:'E0003', seq:3, type:'split', at:d+'10T03:10:00.000Z', code:'B-260910-01', children:['A-260910-01-01','A-260910-01-02'], take:6, remaining:4, perChild:3, unit:'mL', actor:'李澈 L107', loc:'分装间 B', temp:6.0 });
+  add({ id:'E0004', seq:4, type:'handover', at:d+'10T03:10:01.000Z', code:'A-260910-01-01', action:'store', fromStatus:'received', toStatus:'stored', actor:'李澈 L107', loc:'冷库 A-02', temp:6.0, breach:false });
+  add({ id:'E0005', seq:5, type:'handover', at:d+'10T03:10:02.000Z', code:'A-260910-01-02', action:'store', fromStatus:'received', toStatus:'stored', actor:'李澈 L107', loc:'冷库 A-02', temp:6.0, breach:false });
+  add({ id:'E0006', seq:6, type:'handover', at:d+'12T08:00:00.000Z', code:'A-260910-01-01', action:'ship', fromStatus:'stored', toStatus:'transit', actor:'赵泉 C330', loc:'冷库 A-02 → 检测中心', temp:7.4, breach:false });
+  add({ id:'E0007', seq:7, type:'handover', at:d+'12T09:40:00.000Z', code:'A-260910-01-01', action:'test', fromStatus:'transit', toStatus:'testing', actor:'赵泉 C330', loc:'检测中心 3 号实验室', temp:null, breach:false });
+  add({ id:'E0008', seq:8, type:'handover', at:d+'12T14:20:00.000Z', code:'A-260910-01-01', action:'release', fromStatus:'testing', toStatus:'released', actor:'周岚 Q002', loc:'检测中心 3 号实验室', temp:null, breach:false });
+  add({ id:'E0009', seq:9, type:'exhaust', at:d+'12T15:00:00.000Z', code:'A-260910-01-01', actor:'周岚 Q002', loc:'检测中心 3 号实验室', note:'检测全部消耗' });
+  /* 批次2：转运途中越界 → 母管与全部下游联动隔离 → 逐一处置后放行 */
+  add({ id:'E0010', seq:10, type:'register', at:d+'11T02:00:00.000Z', code:'B-260911-02', name:'血清抗体批次 ②', kind:'batch', volume:8, unit:'mL', profile:'frozen', actor:'王敏 W021', loc:'北门收货口', temp:-24, breach:false });
+  add({ id:'E0011', seq:11, type:'handover', at:d+'11T02:20:00.000Z', code:'B-260911-02', action:'store', fromStatus:'received', toStatus:'stored', actor:'王敏 W021', loc:'深冻柜 D-1', temp:-23, breach:false });
+  add({ id:'E0012', seq:12, type:'split', at:d+'11T05:00:00.000Z', code:'B-260911-02', children:['A-260911-02-01','A-260911-02-02'], take:6, remaining:2, perChild:3, unit:'mL', actor:'李澈 L107', loc:'分装间 B', temp:-22 });
+  add({ id:'E0013', seq:13, type:'handover', at:d+'11T05:00:01.000Z', code:'A-260911-02-01', action:'store', fromStatus:'received', toStatus:'stored', actor:'李澈 L107', loc:'深冻柜 D-1', temp:-22, breach:false });
+  add({ id:'E0014', seq:14, type:'handover', at:d+'11T05:00:02.000Z', code:'A-260911-02-02', action:'store', fromStatus:'received', toStatus:'stored', actor:'李澈 L107', loc:'深冻柜 D-1', temp:-22, breach:false });
+  add({ id:'E0015', seq:15, type:'handover', at:d+'13T07:00:00.000Z', code:'B-260911-02', action:'ship', fromStatus:'stored', toStatus:'transit', actor:'赵泉 C330', loc:'深冻柜 D-1 → 分院', temp:-21, breach:false });
+  add({ id:'E0016', seq:16, type:'breach', at:d+'13T09:12:00.000Z', code:'B-260911-02', action:'ship', fromStatus:'transit', toStatus:'quarantined', actor:'赵泉 C330', loc:'冷链车-07', temp:-11, profile:'frozen', breachId:'BR-E0016', reason:'温度 -11.0°C 超出温区 [-80, -20]°C，转运被拒绝并隔离；全部在制下游分装联动隔离。' });
+  add({ id:'E0017', seq:17, type:'cascade', at:d+'13T09:12:01.000Z', code:'A-260911-02-01', fromStatus:'stored', toStatus:'quarantined', actor:'系统', loc:'深冻柜 D-1', temp:null, breachId:'BR-E0016', sourceCode:'B-260911-02', reason:'母管 B-260911-02 温度越界，下游分装联动隔离。' });
+  add({ id:'E0018', seq:18, type:'cascade', at:d+'13T09:12:02.000Z', code:'A-260911-02-02', fromStatus:'stored', toStatus:'quarantined', actor:'系统', loc:'深冻柜 D-1', temp:null, breachId:'BR-E0016', sourceCode:'B-260911-02', reason:'母管 B-260911-02 温度越界，下游分装联动隔离。' });
+  add({ id:'E0019', seq:19, type:'dispose', at:d+'13T13:30:00.000Z', code:'B-260911-02', actor:'质控 何琴 Q015', loc:'隔离区 Q-2', decision:'use', temp:-24, breachId:'BR-E0016', reason:'复冻后性状正常，质控复测合格，批准继续使用。' });
+  add({ id:'E0020', seq:20, type:'dispose', at:d+'13T13:31:00.000Z', code:'A-260911-02-01', actor:'质控 何琴 Q015', loc:'深冻柜 D-1', decision:'use', temp:-23, breachId:'BR-E0016', reason:'随母管评估，批准继续使用。' });
+  add({ id:'E0021', seq:21, type:'dispose', at:d+'13T13:32:00.000Z', code:'A-260911-02-02', actor:'质控 何琴 Q015', loc:'深冻柜 D-1', decision:'use', temp:-24, breachId:'BR-E0016', reason:'随母管评估，批准继续使用。' });
+  add({ id:'E0022', seq:22, type:'handover', at:d+'13T13:40:00.000Z', code:'B-260911-02', action:'store', fromStatus:'quarantined', toStatus:'stored', actor:'何琴 Q015', loc:'深冻柜 D-1', temp:-24, breach:false });
+  add({ id:'E0023', seq:23, type:'handover', at:d+'13T13:41:00.000Z', code:'A-260911-02-01', action:'store', fromStatus:'quarantined', toStatus:'stored', actor:'何琴 Q015', loc:'深冻柜 D-1', temp:-23, breach:false });
+  add({ id:'E0024', seq:24, type:'handover', at:d+'13T13:42:00.000Z', code:'A-260911-02-02', action:'store', fromStatus:'quarantined', toStatus:'stored', actor:'何琴 Q015', loc:'深冻柜 D-1', temp:-24, breach:false });
+  add({ id:'E0025', seq:25, type:'handover', at:d+'14T01:15:00.000Z', code:'A-260911-02-01', action:'release', fromStatus:'stored', toStatus:'released', actor:'何琴 Q015', loc:'深冻柜 D-1', temp:null, breach:false });
+  /* 批次3：接收即越界，隔离待处置 */
+  add({ id:'E0026', seq:26, type:'register', at:d+'14T06:00:00.000Z', code:'B-260914-03', name:'鼻咽拭子批次 ③', kind:'batch', volume:20, unit:'管', profile:'chill', actor:'孙越 W033', loc:'东门收货口', temp:9.6, breach:true, toStatus:'quarantined' });
+  return out;
+}
+
+/* ---------------- 状态 ---------------- */
+let events = [];
+let selectedCode = null;
+let filterStatus = 'all';
+let query = '';
+let auditQuery = '';
+let auditEt = 'all';
+let detailTab = 'lineage';
+
+function load(){
+  let raw = null;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
+  if (raw){
+    try { const parsed = JSON.parse(raw); if (Array.isArray(parsed)) events = parsed; } catch(e){ events = []; }
+  }
+  if (!events.length){ events = seedEvents(); persist(); }
+  seq = events.reduce((m,e) => Math.max(m, e.seq || 0), 0) + 1;
+}
+
+/* ---------------- 重放：事件 -> 样本派生状态 ---------------- */
+function computeSamples(){
+  const m = new Map();
+  const ensure = code => {
+    if (!m.has(code)) m.set(code, {
+      code, name:code, kind:'aliquot', volume:0, initialVolume:0, unit:'mL', profile:'chill',
+      status:'received', parentCodes:[], rootCode:code, childCodes:[], mergedFrom:[],
+      openBreachIds:new Set(), history:[]
+    });
+    return m.get(code);
+  };
+
+  for (const ev of events){
+    const s = ensure(ev.code);
+    switch (ev.type){
+      case 'register':
+        s.name = ev.name; s.kind = ev.kind; s.volume = ev.volume; s.initialVolume = ev.volume;
+        s.unit = ev.unit; s.profile = ev.profile; s.rootCode = ev.code;
+        s.status = ev.breach ? 'quarantined' : 'received';
+        if (ev.breach) s.openBreachIds.add(ev.breachId || ('REG-' + ev.id));
+        break;
+      case 'split':
+        s.volume = ev.remaining;
+        ev.children.forEach(c => {
+          const ch = ensure(c);
+          ch.kind = 'aliquot'; ch.unit = ev.unit; ch.profile = s.profile;
+          ch.volume = ev.perChild || 0; ch.initialVolume = ev.perChild || 0;
+          ch.parentCodes = [ev.code]; ch.rootCode = s.rootCode || ev.code;
+          if (!s.childCodes.includes(c)) s.childCodes.push(c);
+        });
+        break;
+      case 'merge':
+        s.name = ev.name; s.kind = 'aliquot'; s.unit = ev.unit; s.profile = ev.profile;
+        s.volume = ev.volume; s.initialVolume = ev.volume;
+        s.mergedFrom = ev.sources.slice(); s.parentCodes = ev.sources.slice();
+        s.rootCode = ev.rootCode || ev.code; s.status = 'received';
+        ev.sources.forEach(c => { const src = ensure(c); if (!src.childCodes.includes(ev.code)) src.childCodes.push(ev.code); });
+        break;
+      case 'handover':
+        if (ev.remaining !== undefined) s.volume = ev.remaining;
+        s.status = ev.toStatus;
+        if (ev.breach && ev.breachId) s.openBreachIds.add(ev.breachId);
+        break;
+      case 'breach':
+        s.status = 'quarantined';
+        s.openBreachIds.add(ev.breachId || ('BR-' + ev.id));
+        break;
+      case 'cascade':
+        s.status = 'quarantined';
+        if (ev.breachId) s.openBreachIds.add(ev.breachId);
+        break;
+      case 'dispose':
+        if (ev.breachId) s.openBreachIds.delete(ev.breachId); else s.openBreachIds.clear();
+        break;
+      case 'exhaust':
+        s.status = 'exhausted'; s.volume = 0; break;
+      case 'destroy':
+        s.status = 'destroyed'; s.volume = 0; break;
+    }
+    s.history.push(ev);
+    if (ev.type === 'split') ev.children.forEach(c => ensure(c).history.push(ev));
+    if (ev.type === 'merge') ev.sources.forEach(c => ensure(c).history.push(ev));
+    if (ev.type === 'cascade' && ev.sourceCode && ev.sourceCode !== ev.code){
+      const src = m.get(ev.sourceCode);
+      if (src) src.history.push(ev);
+    }
+  }
+  return Array.from(m.values());
+}
+let samplesCache = computeSamples();
+function refresh(){ samplesCache = computeSamples(); }
+function getSample(code){ return samplesCache.find(s => s.code === code); }
+
+/* 某样本的全部在制下游（递归；排除终态） */
+function activeDescendants(code){
+  const out = [];
+  const walk = c => {
+    const s = getSample(c); if (!s) return;
+    for (const ch of s.childCodes){
+      const cs = getSample(ch);
+      if (cs){ if (!TERMINAL.has(cs.status)) out.push(ch); walk(ch); }
+    }
+  };
+  walk(code);
+  return Array.from(new Set(out));
+}
+function descendantsAll(code){
+  const out = [];
+  const walk = c => { const s = getSample(c); if (!s) return; s.childCodes.forEach(ch => { out.push(ch); walk(ch); }); };
+  walk(code);
+  return Array.from(new Set(out));
+}
+
+/* ---------------- 业务规则 ---------------- */
+function assertTransition(code, actionKey){
+  const s = getSample(code);
+  if (!s) throw new Error('样本不存在：' + code);
+  if (TERMINAL.has(s.status)) throw new Error(`${code} 已${STATUS_LABEL[s.status]}，终态样本不可再操作`);
+  const meta = ACTIONS[actionKey];
+  if (!meta) throw new Error('未知操作：' + actionKey);
+  if (s.status === 'quarantined'){
+    throw new Error(`${code} 处于隔离状态：必须先在“隔离处置”中登记处置决定（批准使用回库或拒收销毁），不能直接 ${meta.label}`);
+  }
+  if (actionKey === 'release' && s.openBreachIds.size > 0){
+    throw new Error(`${code} 有 ${s.openBreachIds.size} 条未处置温度越界，禁止放行`);
+  }
+  if (!TRANSITIONS[s.status].includes(meta.target)){
+    throw new Error(`非法状态跳转：${STATUS_LABEL[s.status]} → ${STATUS_LABEL[meta.target]}（${code}），操作被拒绝`);
+  }
+  return meta;
+}
+
+function autoCode(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  const prefix = 'B-' + String(d.getFullYear()).slice(2) + p(d.getMonth()+1) + p(d.getDate());
+  const used = new Set(samplesCache.map(s => s.code));
+  let n = 1;
+  while (used.has(`${prefix}-${String(n).padStart(2,'0')}`)) n++;
+  return `${prefix}-${String(n).padStart(2,'0')}`;
+}
+function childCode(parent, idx, reserved){
+  const used = new Set(samplesCache.map(s => s.code));
+  const head = 'A-' + parent.replace(/^[ABM]-/,'') + '-';
+  let n = idx;
+  const cand = () => head + String(n).padStart(2,'0');
+  while (used.has(cand()) || (reserved && reserved.has(cand()))) n++;
+  const c = cand();
+  if (reserved) reserved.add(c);
+  return c;
+}
+
+/* 登记 */
+function doRegister(form){
+  const name = form.rName.value.trim();
+  const code = form.rCode.value.trim() || autoCode();
+  if (!name) throw new Error('请填写样本名称');
+  if (getSample(code)) throw new Error('编号已存在：' + code);
+  const prof = PROFILES.find(p => p.key === form.rProfile.value);
+  const volume = num(form.rVolume.value);
+  if (volume <= 0) throw new Error('初始量必须大于 0');
+  if (form.rTemp.value === '') throw new Error('接收温度为冷链必录项');
+  const temp = num(form.rTemp.value);
+  const actor = form.rActor.value.trim(), loc = form.rLoc.value.trim();
+  if (!actor || !loc) throw new Error('经手人与位置必填');
+  const at = new Date(form.rTime.value).toISOString();
+  const breach = !inRange(temp, prof);
+  const ev = mkEvent({
+    type:'register', at, code, name, kind:form.rKind.value, volume, unit:form.rUnit.value,
+    profile:prof.key, actor, loc, temp, breach
+  });
+  if (breach){ ev.toStatus = 'quarantined'; ev.breachId = 'BR-' + ev.id; }
+  sealEvent(ev); // 补充 breachId 后重算
+  appendEvent(ev);
+  selectedCode = code;
+  savePrefs(actor, loc);
+  return breach ? `登记成功，但 ${temp}°C 超出温区，${code} 已隔离，须处置后放行` : `批次 ${code} 登记成功`;
+}
+
+/* 交接（入库 / 转运 / 检测 / 到达退回 / 放行 / 耗尽 / 销毁） */
+function doHandover(code, f){
+  const action = f.action.value;
+  const s = getSample(code);
+  const meta = assertTransition(code, action);
+  const actor = f.actor.value.trim(), loc = f.loc.value.trim();
+  if (!actor || !loc) throw new Error('经手人与位置必填');
+  const at = new Date(f.time.value).toISOString();
+  const prof = PROFILES.find(p => p.key === s.profile);
+  let temp = null;
+  if (meta.needTemp){
+    if (f.temp.value === '') throw new Error('该冷链交接必须记录温度');
+    temp = num(f.temp.value);
+  }
+  const note = f.note ? f.note.value.trim() : '';
+  const fromStatus = s.status;
+
+  /* 温度越界：申请的跳转被拒绝；样本隔离，全部在制下游联动隔离 */
+  if (meta.needTemp && !inRange(temp, prof)){
+    const breachBase = mkEvent({
+      type:'breach', at, code, action, fromStatus, toStatus:'quarantined',
+      actor, loc, temp, profile:s.profile,
+      reason:`温度 ${temp}°C 超出温区 [${prof.min}, ${prof.max}]°C，“${meta.label}”被拒绝，当前样本隔离；全部在制下游分装联动隔离。`
+    });
+    breachBase.breachId = 'BR-' + breachBase.id;
+    sealEvent(breachBase);
+    appendEvent(breachBase);
+    const desc = activeDescendants(code);
+    desc.forEach((dc, i) => {
+      const ds = getSample(dc);
+      const ce = mkEvent({
+        type:'cascade', at:new Date(new Date(at).getTime() + i + 10).toISOString(),
+        code:dc, fromStatus: ds ? ds.status : 'stored', toStatus:'quarantined',
+        actor:'系统', loc: ds ? (ds.history.filter(e=>e.loc).slice(-1)[0]?.loc || loc) : loc,
+        temp:null, breachId:breachBase.breachId, sourceCode:code,
+        reason:`上游 ${code} 温度越界（${temp}°C），下游分装联动隔离，未处置前不得放行。`
+      });
+      appendEvent(ce);
+    });
+    refresh();
+    return { warn:`温度 ${temp}°C 越界！${code} 已隔离${desc.length ? '，'+desc.length+' 个在制下游联动隔离' : ''}，须逐一处置后方可放行` };
+  }
+
+  let ev;
+  if (action === 'exhaust' || action === 'destroy'){
+    ev = mkEvent({ type:action, at, code, actor, loc, remaining:0 });
+    if (temp !== null) ev.temp = temp;
+    if (note) ev.note = note;
+    sealEvent(ev);
+  } else {
+    ev = mkEvent(Object.assign(
+      { type:'handover', at, code, action, fromStatus, toStatus:meta.target, actor, loc, temp, breach:false },
+      note ? { note } : {}
+    ));
+  }
+  appendEvent(ev);
+  refresh();
+  return { ok:`${code}：${STATUS_LABEL[fromStatus]} → ${STATUS_LABEL[meta.target]}` };
+}
+
+/* 分装（拆分）：数量 × 每管量 不得超过母管剩余量 */
+function doSplit(code, f){
+  const s = getSample(code);
+  if (!s) throw new Error('样本不存在');
+  if (TERMINAL.has(s.status)) throw new Error('终态样本不能分装');
+  if (s.status === 'quarantined') throw new Error('隔离样本不能分装，请先处置');
+  if (s.status === 'transit') throw new Error('转运中样本不能分装，请先到达入库');
+  const count = parseInt(f.count.value, 10);
+  const per = num(f.per.value);
+  const actor = f.actor.value.trim(), loc = f.loc.value.trim();
+  if (!actor || !loc) throw new Error('经手人与位置必填');
+  if (!count || count < 1) throw new Error('分装数量至少 1');
+  if (per <= 0) throw new Error('每管分装量必须大于 0');
+  const take = +(per * count).toFixed(6);
+  if (take > s.volume + 1e-9) throw new Error(`分装总量 ${take} ${s.unit} 超过母管剩余量 ${s.volume} ${s.unit}，已拒绝`);
+  if (f.temp.value === '') throw new Error('分装为冷链操作，必须记录温度');
+  const temp = num(f.temp.value);
+  const prof = PROFILES.find(p => p.key === s.profile);
+  if (!inRange(temp, prof)) throw new Error(`分装温度 ${temp}°C 超出温区 [${prof.min}, ${prof.max}]°C，请先走异常交接流程`);
+  const at = new Date(f.time.value).toISOString();
+
+  const children = [];
+  const reserved = new Set();
+  for (let i = 1; i <= count; i++) children.push(childCode(code, i, reserved));
+  const remaining = +(s.volume - take).toFixed(6);
+
+  appendEvent(mkEvent({ type:'split', at, code, children, take, remaining, perChild:per, unit:s.unit, actor, loc, temp }));
+  refresh();
+  /* 每个子管：登记谱系后立即“接收 → 在库”冷链交接 */
+  children.forEach((c,i) => {
+    appendEvent(mkEvent({
+      type:'handover', at:new Date(new Date(at).getTime()+1+i).toISOString(),
+      code:c, action:'store', fromStatus:'received', toStatus:'stored', actor, loc, temp, breach:false
+    }));
+  });
+  refresh();
+  /* 母管取尽：自动耗尽，保持状态与剩余量一致 */
+  const after = getSample(code);
+  if (after.volume <= 1e-9 && !TERMINAL.has(after.status)){
+    appendEvent(mkEvent({ type:'exhaust', at:new Date(new Date(at).getTime()+100).toISOString(), code, actor, loc, note:'分装后母管剩余量为 0，自动耗尽' }));
+  }
+  refresh();
+  return { ok:`已分装出 ${count} 管（每管 ${per} ${s.unit}），母管剩余 ${remaining} ${s.unit}` + (remaining <= 1e-9 ? '，母管已耗尽' : '') };
+}
+
+/* 合并：同单位、同温区、在制；按余量比例扣减，保留多父谱系 */
+function doMerge(picks, f){
+  const name = f.name.value.trim();
+  const actor = f.actor.value.trim(), loc = f.loc.value.trim();
+  if (!name) throw new Error('请填写合并后样本名称');
+  if (!actor || !loc) throw new Error('经手人与位置必填');
+  if (picks.length < 2) throw new Error('合并至少选择 2 个样本');
+  const srcs = picks.map(getSample);
+  if (srcs.some(s => !s)) throw new Error('样本不存在');
+  if (srcs.some(s => TERMINAL.has(s.status))) throw new Error('含终态样本，不能合并');
+  if (srcs.some(s => s.status === 'quarantined')) throw new Error('含隔离样本，请先处置');
+  if (srcs.some(s => s.status === 'transit')) throw new Error('含转运中样本，不能合并');
+  const unit = srcs[0].unit, profile = srcs[0].profile;
+  if (srcs.some(s => s.unit !== unit)) throw new Error('计量单位不一致，不能合并');
+  if (srcs.some(s => s.profile !== profile)) throw new Error('温区要求不一致，不能合并');
+  const per = num(f.perTotal.value);
+  const total = +srcs.reduce((a,s) => a + s.volume, 0).toFixed(6);
+  if (per <= 0) throw new Error('合并总量必须大于 0');
+  if (per > total + 1e-9) throw new Error(`合并量 ${per} 超过可用余量之和 ${total}`);
+  if (f.temp.value === '') throw new Error('合并为冷链操作，必须记录温度');
+  const temp = num(f.temp.value);
+  const prof = PROFILES.find(p => p.key === profile);
+  if (!inRange(temp, prof)) throw new Error(`合并温度 ${temp}°C 超出温区 [${prof.min}, ${prof.max}]°C`);
+  const at = new Date(f.time.value).toISOString();
+
+  const code = 'M-' + String(seq).padStart(4,'0');
+  /* 按比例扣减；最后一个来源吸收舍入误差 */
+  let allocated = 0;
+  const takes = srcs.map((s,i) => {
+    if (i === srcs.length - 1) return +(per - allocated).toFixed(6);
+    const t = +Math.min(s.volume, per * (s.volume / total)).toFixed(6);
+    allocated += t; return t;
+  });
+  const roots = Array.from(new Set(srcs.map(s => s.rootCode)));
+  const rootCode = roots.length === 1 ? roots[0] : code;
+
+  appendEvent(mkEvent({ type:'merge', at, code, name, sources:picks, takes, volume:per, remaining:per, unit, profile, rootCode, actor, loc, temp }));
+  refresh();
+  appendEvent(mkEvent({ type:'handover', at:new Date(new Date(at).getTime()+1).toISOString(), code, action:'store', fromStatus:'received', toStatus:'stored', actor, loc, temp, breach:false }));
+  /* 来源扣减（状态不变，仅剩余量变化）；取尽自动耗尽 */
+  picks.forEach((pc,i) => {
+    const s = getSample(pc);
+    const remain = +(s.volume - takes[i]).toFixed(6);
+    appendEvent(mkEvent({
+      type:'handover', at:new Date(new Date(at).getTime()+10+i).toISOString(),
+      code:pc, action:'merge-consume', fromStatus:s.status, toStatus:s.status,
+      actor, loc, temp:null, breach:false, remaining:remain, note:`并入 ${code}，扣减 ${takes[i]} ${unit}`
+    }));
+    refresh();
+    const a2 = getSample(pc);
+    if (a2.volume <= 1e-9){
+      appendEvent(mkEvent({ type:'exhaust', at:new Date(new Date(at).getTime()+50+i).toISOString(), code:pc, actor, loc, note:`全部并入 ${code}，自动耗尽` }));
+    }
+  });
+  refresh();
+  selectedCode = code;
+  return { ok:`合并管 ${code} 已生成（${per} ${unit}），谱系保留 ${picks.length} 个来源` };
+}
+
+/* 隔离处置：批准使用 -> 回在库；拒收/报废 -> 销毁 */
+function doDispose(code, f){
+  const s = getSample(code);
+  if (!s) throw new Error('样本不存在');
+  if (s.status !== 'quarantined') throw new Error('仅隔离样本可登记处置');
+  const decision = f.decision.value;
+  const actor = f.actor.value.trim(), loc = f.loc.value.trim(), reason = f.reason.value.trim();
+  if (!actor || !loc || !reason) throw new Error('经手人、位置、处置依据均必填');
+  const at = new Date(f.time.value).toISOString();
+  const prof = PROFILES.find(p => p.key === s.profile);
+  let temp = f.temp.value === '' ? null : num(f.temp.value);
+  if (temp !== null && !inRange(temp, prof)) throw new Error('处置时记录温度仍越界，请先恢复合规温度');
+  const breachId = Array.from(s.openBreachIds)[0] || null;
+
+  appendEvent(mkEvent({ type:'dispose', at, code, actor, loc, decision, reason, temp, breachId }));
+  refresh();
+  if (decision === 'reject'){
+    appendEvent(mkEvent({ type:'destroy', at:new Date(new Date(at).getTime()+1).toISOString(), code, actor, loc, remaining:0, note:'处置结论：拒收/报废，执行销毁' }));
+    refresh();
+    return { ok:`${code} 处置结论为拒收/报废，已执行销毁` };
+  }
+  appendEvent(mkEvent({ type:'handover', at:new Date(new Date(at).getTime()+2).toISOString(), code, action:'store', fromStatus:'quarantined', toStatus:'stored', actor, loc, temp, breach:false }));
+  refresh();
+  return { ok:`${code} 已记录处置（批准使用）并回到在库，可继续放行流程` };
+}
+
+/* ---------------- 渲染 ---------------- */
+function toast(msg, kind='ok'){
+  const w = $('#toastWrap'), t = document.createElement('div');
+  t.className = 'toast ' + kind; t.textContent = msg; w.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; setTimeout(() => t.remove(), 420); }, 3600);
+}
+const badge = status => `<span class="badge b-${status}">${STATUS_LABEL[status]}</span>`;
+const profShort = key => { const p = PROFILES.find(x => x.key === key); return p ? `${p.min}~${p.max}°C` : key; };
+
+function renderMetrics(){
+  const c = Object.fromEntries(STATUS.map(s => [s,0]));
+  samplesCache.forEach(s => c[s.status]++);
+  const cards = [
+    ['s-received','已接收',c.received],
+    ['s-stored','在库',c.stored],
+    ['s-transit','转运中',c.transit],
+    ['s-testing','检测中',c.testing],
+    ['s-quarantined','隔离待处置',c.quarantined],
+    ['s-released','放行/耗尽/销毁',c.released + c.exhausted + c.destroyed]
+  ];
+  $('#metrics').innerHTML = cards.map(([cls,k,v]) => `<div class="metric ${cls}"><small>${k}</small><b>${v}</b></div>`).join('');
+}
+
+function renderFilters(){
+  const counts = Object.fromEntries(STATUS.map(s => [s,0]));
+  samplesCache.forEach(s => counts[s.status]++);
+  const items = [['all','全部',samplesCache.length]].concat(STATUS.map(s => [s, STATUS_LABEL[s], counts[s]]));
+  $('#filters').innerHTML =
+    items.map(([k,label,n]) => `<button type="button" class="chip ${filterStatus===k?'active':''}" data-status="${k}">${label}<b>${n}</b></button>`).join('') +
+    `<span class="searchbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="listSearch" placeholder="搜索编号 / 名称…" value="${esc(query)}" aria-label="搜索样本"></span>`;
+  $('#listSearch').addEventListener('input', e => { query = e.target.value; renderList(); });
+}
+
+function renderList(){
+  const q = query.trim().toLowerCase();
+  const list = samplesCache.filter(s => (filterStatus==='all' || s.status===filterStatus) && (!q || s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)));
+  $('#listCount').textContent = `${samplesCache.length} 个样本`;
+  $('#sampleList').innerHTML = list.length ? list.map(s => `
+    <button type="button" class="row ${selectedCode===s.code?'sel':''}" data-code="${esc(s.code)}">
+      <div><div class="code">${esc(s.code)}</div><div class="sub">${esc(s.name)}${s.mergedFrom.length?' · 合管':''}${s.childCodes.length?' · '+s.childCodes.length+' 个下游':''}${s.openBreachIds.size?' · ⚠ 未处置越界':''}</div></div>
+      <div class="vol col-vol">${s.volume} <span style="color:var(--muted)">${esc(s.unit)}</span></div>
+      <div class="col-kind"><span class="kind">${profShort(s.profile)}</span></div>
+      <div class="col-status">${badge(s.status)}</div>
+      <div class="col-act"><span style="color:var(--blue);font-size:12px">追溯 ›</span></div>
+    </button>`).join('') : `<div class="empty">没有匹配的样本</div>`;
+}
+
+function actionOptions(s){
+  const opts = [];
+  const add = k => { if (ACTIONS[k] && TRANSITIONS[s.status].includes(ACTIONS[k].target)) opts.push(k); };
+  if (s.status === 'received'){ add('store'); add('ship'); add('test'); add('release'); add('destroy'); }
+  if (s.status === 'stored'){ add('ship'); add('test'); add('release'); add('exhaust'); add('destroy'); }
+  if (s.status === 'transit'){ add('receive'); add('test'); add('destroy'); }
+  if (s.status === 'testing'){ add('receive'); add('release'); add('exhaust'); add('destroy'); }
+  if (s.status === 'released'){ add('ship'); add('test'); add('exhaust'); add('destroy'); }
+  return opts;
+}
+
+function renderActionPanel(){
+  const p = $('#actionPanel');
+  const s = selectedCode && getSample(selectedCode);
+  if (!s){ p.innerHTML = `<h3>交接 / 分装 / 处置</h3><div class="empty">从右侧台账选择一个样本</div>`; return; }
+  const prof = PROFILES.find(x => x.key === s.profile);
+  const prefs = loadPrefs();
+  const timeVal = nowLocal();
+
+  if (s.status === 'quarantined'){
+    p.innerHTML = `
+      <h3>隔离处置 <span class="tag" style="background:#ffe3e5;color:#a93942">${esc(s.code)}</span></h3>
+      <div class="alert red"><b>待处置温度越界：${s.openBreachIds.size ? Array.from(s.openBreachIds).map(esc).join('、') : '（无未结编号）'}</b><br>未登记处置决定前该样本不能放行。选择“批准使用 → 回在库”或“拒收/报废 → 销毁”。下游分装须各自处置。</div>
+      <form id="disposeForm">
+        <div class="field-row">
+          <div class="field"><label for="dActor">经手人</label><input id="dActor" required value="${esc(prefs.actor||'质控 ')}"></div>
+          <div class="field"><label for="dLoc">处置位置</label><input id="dLoc" required value="${esc(prefs.loc||'隔离区')}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="dTemp">当前温度 °C</label><input id="dTemp" type="number" step="any" inputmode="decimal" value="${prof.max}"></div>
+          <div class="field"><label for="dTime">时间</label><input id="dTime" type="datetime-local" step="1" required value="${timeVal}"></div>
+        </div>
+        <div class="field"><label for="dDecision">处置结论</label>
+          <select id="dDecision"><option value="use">批准继续使用 → 回在库</option><option value="reject">拒收 / 报废 → 销毁</option></select>
+        </div>
+        <div class="field"><label for="dReason">处置依据 / 复核说明（必填）</label><textarea id="dReason" rows="2" required placeholder="如：复测合格、QC 签字、偏差编号…"></textarea></div>
+        <button class="primary" type="submit" style="width:100%">提交处置决定（追加记录）</button>
+        <div class="error" id="actionError"></div>
+      </form>`;
+    return;
+  }
+  const opts = actionOptions(s);
+  const canSplit = !TERMINAL.has(s.status) && !['transit','quarantined'].includes(s.status);
+  p.innerHTML = `
+    <h3>交接 / 操作 <span class="tag">${esc(s.code)}</span></h3>
+    <form id="actionForm">
+      <div class="field"><label for="aAction">操作（仅列出当前状态下的合法跳转）</label>
+        <select id="aAction">${opts.map(k => `<option value="${k}">${ACTIONS[k].label} → ${STATUS_LABEL[ACTIONS[k].target]}</option>`).join('')}</select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="aActor">经手人</label><input id="aActor" required value="${esc(prefs.actor||'')}"></div>
+        <div class="field"><label for="aLoc">位置</label><input id="aLoc" required value="${esc(prefs.loc||'')}"></div>
+      </div>
+      <div class="field-row" id="tempRow">
+        <div class="field"><label for="aTemp">温度 °C（冷链交接必录）</label><input id="aTemp" type="number" step="any" inputmode="decimal"></div>
+        <div class="field"><label for="aTime">时间</label><input id="aTime" type="datetime-local" step="1" required value="${timeVal}"></div>
+      </div>
+      <div class="field"><label for="aNote">备注</label><input id="aNote" placeholder="可选：偏差说明、交接单号…"></div>
+      <button class="primary" type="submit" style="width:100%">确认交接</button>
+      <div class="error" id="actionError"></div>
+    </form>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button type="button" class="small" id="openSplit" ${canSplit?'':'disabled'}>分装 / 拆分</button>
+      <button type="button" class="small" id="openMerge" ${canSplit?'':'disabled'}>合并样本</button>
+    </div>
+    <p class="hint" id="tempHint"></p>`;
+  updateTempHint();
+}
+
+function updateTempHint(){
+  const sel = $('#aAction'); const hint = $('#tempHint'); const row = $('#tempRow');
+  if (!sel || !hint) return;
+  const s = getSample(selectedCode);
+  const meta = ACTIONS[sel.value];
+  const prof = PROFILES.find(x => x.key === s.profile);
+  if (meta.needTemp){
+    row.style.display = '';
+    const inp = $('#aTemp');
+    if (inp.value === '') inp.value = sel.value === 'ship' ? prof.max : +((prof.min + prof.max)/2).toFixed(1);
+    hint.innerHTML = `温区要求 <code>${prof.min} ~ ${prof.max}°C</code>（${prof.name}）。越界操作会被拒绝，并隔离当前样本及全部在制下游。`;
+  } else {
+    row.style.display = 'none';
+    hint.textContent = '该操作不要求温度（送检/放行/耗尽/销毁）。';
+  }
+}
+
+function renderDetail(){
+  const p = $('#detailPanel');
+  const s = selectedCode && getSample(selectedCode);
+  if (!s){ p.innerHTML = `<h3>样本追溯</h3><div class="empty detail-empty">选择台账中的任意样本，查看父子谱系、剩余量与只追加历史</div>`; return; }
+  const prof = PROFILES.find(x => x.key === s.profile);
+  const openList = Array.from(s.openBreachIds);
+  const histCount = s.history.length;
+  p.innerHTML = `
+    <h3>样本追溯</h3>
+    <div class="detail-head">
+      <div>
+        <h2>${esc(s.code)}</h2>
+        <div class="sub">${esc(s.name)} · ${s.kind==='batch'?'母管批次':'分装/合管'} · 单位 ${esc(s.unit)}</div>
+      </div>
+      ${badge(s.status)}
+    </div>
+    <div class="meta">
+      <div><small>剩余量 / 初始量</small><span><b>${s.volume}</b> / ${s.initialVolume} ${esc(s.unit)}</span></div>
+      <div><small>温区要求</small><span>${prof.name}</span></div>
+      <div><small>谱系根</small><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px">${esc(s.rootCode)}</span></div>
+      <div><small>直接来源</small><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px">${s.mergedFrom.length ? s.mergedFrom.map(esc).join(' + ') : (s.parentCodes[0] ? esc(s.parentCodes[0]) : '—')}</span></div>
+      <div><small>下游分装</small><span>${s.childCodes.length ? s.childCodes.map(esc).join('、') : '—'}</span></div>
+    </div>
+    ${openList.length ? `<div class="alert red"><b>未处置越界：</b>${openList.map(esc).join('、')}<br>该越界关闭前样本不能放行；如上游为母管，请确认所有下游分装均已单独处置。</div>` : ''}
+    ${s.status==='transit' ? `<div class="alert info">转运中：到达或退回后请选择“到达 / 退回入库”，记录到货温度与位置。</div>` : ''}
+    ${TERMINAL.has(s.status) ? `<div class="alert amber">终态样本（${STATUS_LABEL[s.status]}），历史仍可追溯，不可再发生流转。</div>` : ''}
+    <div class="tabs">
+      <button type="button" class="tab ${detailTab==='lineage'?'active':''}" data-tab="lineage">父子谱系</button>
+      <button type="button" class="tab ${detailTab==='history'?'active':''}" data-tab="history">本样本记录（${histCount}）</button>
+    </div>
+    <div id="detailBody"></div>`;
+  renderDetailBody();
+}
+
+function lineageNode(c){
+  const x = getSample(c);
+  if (!x) return '';
+  const kids = x.childCodes.map(lineageNode).join('');
+  return `<li><span class="tnode ${c===selectedCode?'sel':''}" data-jump="${esc(c)}"><code>${esc(c)}</code>${badge(x.status)}<small class="sub">${x.volume} ${esc(x.unit)}</small>${x.mergedFrom.length?'<span class="kind">合管</span>':''}${x.openBreachIds.size?'<span style="color:var(--red);font-size:12px">⚠</span>':''}</span>${kids?`<ul>${kids}</ul>`:''}</li>`;
+}
+
+function renderDetailBody(){
+  const body = $('#detailBody');
+  const s = getSample(selectedCode);
+  if (!s || !body) return;
+  if (detailTab === 'lineage'){
+    const total = descendantsAll(s.rootCode).length + 1;
+    body.innerHTML = `<div class="tree"><ul>${lineageNode(s.rootCode)}</ul></div>
+      <p class="hint">虚线为分装层级，点击任意节点可跳转追溯；合管样本保留全部来源（多父谱系）。本谱系共 ${total} 个节点。</p>`;
+  } else {
+    body.innerHTML = `<div class="log">${s.history.slice().reverse().map(evHtml).join('')}</div>`;
+  }
+}
+
+function tempHtml(ev, profKey){
+  if (ev.temp === null || ev.temp === undefined) return '<span style="color:var(--muted)">温度 —</span>';
+  const prof = PROFILES.find(p => p.key === (ev.profile || profKey));
+  const ok = prof ? inRange(ev.temp, prof) : true;
+  return `温度 <span class="${ok?'temp-ok':'temp-bad'}">${ev.temp}°C</span>`;
+}
+
+function evHtml(ev){
+  const profKey = getSample(ev.code) ? getSample(ev.code).profile : ev.profile;
+  let desc = '';
+  switch (ev.type){
+    case 'register':
+      desc = `登记 <b>${esc(ev.code)}</b>（${esc(ev.name)}，${ev.kind==='batch'?'母管批次':'分装管'}，初始 ${ev.volume} ${esc(ev.unit)}）；经手 <b>${esc(ev.actor)}</b> @ ${esc(ev.loc)}；${tempHtml(ev,profKey)}${ev.breach?'；<span class="breachflag">接收即越界，直接隔离</span>':''}`;
+      break;
+    case 'split':
+      desc = `分装：母管 <b>${esc(ev.code)}</b> → ${ev.children.map(c=>`<code>${esc(c)}</code>`).join('、')}，取出 ${ev.take} ${esc(ev.unit)}（每管 ${ev.perChild}），母管剩余 <b>${ev.remaining} ${esc(ev.unit)}</b>；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}；${tempHtml(ev,profKey)}`;
+      break;
+    case 'merge':
+      desc = `合并生成 <b>${esc(ev.code)}</b>（${esc(ev.name)}，${ev.volume} ${esc(ev.unit)}）；来源 ${ev.sources.map(c=>`<code>${esc(c)}</code>`).join(' + ')}，扣减 [${ev.takes.map(esc).join(', ')}]；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}；${tempHtml(ev,profKey)}`;
+      break;
+    case 'handover': {
+      const label = ev.action === 'merge-consume' ? '合并扣减' : (ACTIONS[ev.action]?.label || ev.action);
+      if (ev.action === 'merge-consume'){
+        desc = `合并扣减：<code>${esc(ev.code)}</code> 剩余量 → <b>${ev.remaining}</b>${ev.note?`；${esc(ev.note)}`:''}；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}`;
+      } else {
+        desc = `${label}：<code>${esc(ev.code)}</code> ${STATUS_LABEL[ev.fromStatus]||ev.fromStatus} → <b>${STATUS_LABEL[ev.toStatus]||ev.toStatus}</b>；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}${ev.temp===null||ev.temp===undefined?'':'；'+tempHtml(ev,profKey)}${ev.remaining!==undefined?`；剩余量 ${ev.remaining}`:''}${ev.note?`；${esc(ev.note)}`:''}`;
+      }
+      break;
+    }
+    case 'breach':
+      desc = `<span class="breachflag">温度越界 ${esc(ev.breachId||'')}</span>：<code>${esc(ev.code)}</code> @ ${esc(ev.loc)}；${tempHtml(ev,profKey)}；${esc(ev.reason||'')}`;
+      break;
+    case 'cascade':
+      desc = `<span class="breachflag">联动隔离</span>：<code>${esc(ev.code)}</code>（上游 <code>${esc(ev.sourceCode)}</code>，越界 ${esc(ev.breachId||'')}）；${esc(ev.reason||'')}`;
+      break;
+    case 'dispose':
+      desc = `隔离处置：<code>${esc(ev.code)}</code> 结论 <b>${ev.decision==='use'?'批准使用':'拒收/报废'}</b>；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}${ev.temp===null||ev.temp===undefined?'':'；'+tempHtml(ev,profKey)}；依据：${esc(ev.reason||'')}`;
+      break;
+    case 'exhaust':
+      desc = `耗尽：<code>${esc(ev.code)}</code> 剩余量归零；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}${ev.note?`；${esc(ev.note)}`:''}`;
+      break;
+    case 'destroy':
+      desc = `销毁：<code>${esc(ev.code)}</code> 执行销毁，不可再流转；经手 ${esc(ev.actor)} @ ${esc(ev.loc)}${ev.note?`；${esc(ev.note)}`:''}`;
+      break;
+    default: desc = esc(JSON.stringify(ev));
+  }
+  return `<div class="evt"><time>${fmtTime(ev.at)}</time><div><span class="etype t-${ev.type}">${EV_LABEL[ev.type]||ev.type}</span><br><span class="hash">#${esc(ev.id)} · ${esc((ev.hash||'').slice(0,8))}</span></div><p>${desc}</p></div>`;
+}
+
+/* ---------------- 审计记录页 ---------------- */
+function verifyChain(){
+  let prev = 'GENESIS';
+  for (const ev of events){
+    const expect = fnv1a(prev + '|' + canonical(ev));
+    if (ev.prev !== prev || ev.hash !== expect) return { ok:false, at:ev.id, expect, got:ev.hash };
+    prev = ev.hash;
+  }
+  /* 独立锚点（另一把存储键）：发现链尾删除、整段丢失或回滚 */
+  const anchor = readAnchor();
+  if (anchor && (anchor.count !== events.length || anchor.tail !== prev)){
+    return { ok:false, at: anchor.lastId || '(末尾)', expect: anchor.tail, got: prev, reason:'anchor' };
+  }
+  return { ok:true, tail:prev, count:events.length };
+}
+function renderAudit(){
+  const v = verifyChain();
+  $('#verifyBox').innerHTML = v.ok
+    ? `<div class="verify ok">✓ 校验链完整：共 <b>${v.count}</b> 条只追加记录，链尾 <b>${v.tail}</b>。哈希链与独立锚点一致，历史未被修改、删除或回滚。</div>`
+    : (v.reason === 'anchor'
+      ? `<div class="verify bad">✗ 审计锚点不匹配：应有链尾 <b>${v.expect}</b>（记录 <b>${v.at}</b> 之后），实际链尾 <b>${v.got}</b>。检测到链尾记录被删除或数据回滚，审计轨迹已不可信。</div>`
+      : `<div class="verify bad">✗ 校验失败于记录 <b>${v.at}</b>：期望哈希 <b>${v.expect}</b>，实际 <b>${v.got||'缺失'}</b>。历史记录被修改或删除，审计轨迹已不可信。</div>`);
+  const q = auditQuery.trim().toLowerCase();
+  const list = events.slice().reverse().filter(ev => (auditEt==='all' || ev.type===auditEt) && (!q || JSON.stringify(ev).toLowerCase().includes(q)));
+  $('#auditLog').innerHTML = list.length ? list.map(evHtml).join('') : `<div class="empty">没有匹配记录</div>`;
+}
+
+/* ---------------- 模态：分装 / 合并 ---------------- */
+function closeModal(){ $('#modalRoot').innerHTML = ''; }
+function openSplitModal(){
+  const s = getSample(selectedCode);
+  if (!s) return;
+  const prof = PROFILES.find(x => x.key === s.profile);
+  const prefs = loadPrefs();
+  $('#modalRoot').innerHTML = `<div class="modal-back" id="mBack"><div class="modal" role="dialog" aria-modal="true" aria-label="分装">
+    <div class="modal-head"><h2>分装 / 拆分 · ${esc(s.code)}</h2><button type="button" class="ghost small" id="mClose">×</button></div>
+    <p class="hint">母管剩余 <b>${s.volume} ${esc(s.unit)}</b>，温区 ${prof.min}~${prof.max}°C。分装总量（数量 × 每管量）不能超过母管剩余量；取尽时母管自动耗尽，子管独立编号并保留父子谱系。</p>
+    <form id="splitForm">
+      <div class="field-row">
+        <div class="field"><label for="sfCount">分装数量（管）</label><input id="sfCount" type="number" min="1" step="1" inputmode="numeric" required value="2"></div>
+        <div class="field"><label for="sfPer">每管量（${esc(s.unit)}）</label><input id="sfPer" type="number" min="0" step="any" inputmode="decimal" required value="${+(s.volume/2).toFixed(3)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="sfActor">经手人</label><input id="sfActor" required value="${esc(prefs.actor||'')}"></div>
+        <div class="field"><label for="sfLoc">分装位置</label><input id="sfLoc" required value="${esc(prefs.loc||'分装间')}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="sfTemp">分装温度 °C</label><input id="sfTemp" type="number" step="any" inputmode="decimal" required value="${+((prof.min+prof.max)/2).toFixed(1)}"></div>
+        <div class="field"><label for="sfTime">时间</label><input id="sfTime" type="datetime-local" step="1" required value="${nowLocal()}"></div>
+      </div>
+      <div class="modal-actions"><button type="button" class="ghost" id="mCancel">取消</button><button class="primary" type="submit">确认分装</button></div>
+      <div class="error" id="modalError"></div>
+    </form>
+  </div></div>`;
+  $('#mBack').addEventListener('click', e => { if (e.target.id === 'mBack') closeModal(); });
+  $('#mClose').onclick = closeModal; $('#mCancel').onclick = closeModal;
+  $('#splitForm').onsubmit = e => {
+    e.preventDefault();
+    try {
+      const r = doSplit(selectedCode, { count:$('#sfCount'), per:$('#sfPer'), actor:$('#sfActor'), loc:$('#sfLoc'), temp:$('#sfTemp'), time:$('#sfTime') });
+      closeModal(); renderAll(); toast(r.ok);
+    } catch(err){ showModalError(err.message); }
+  };
+}
+function openMergeModal(){
+  const s = getSample(selectedCode);
+  if (!s) return;
+  const prof = PROFILES.find(x => x.key === s.profile);
+  const prefs = loadPrefs();
+  const candidates = samplesCache.filter(x =>
+    x.code !== s.code && !TERMINAL.has(x.status) && !['transit','quarantined'].includes(x.status)
+    && x.unit === s.unit && x.profile === s.profile);
+  $('#modalRoot').innerHTML = `<div class="modal-back" id="mBack"><div class="modal" role="dialog" aria-modal="true" aria-label="合并样本">
+    <div class="modal-head"><h2>合并样本（含 ${esc(s.code)}）</h2><button type="button" class="ghost small" id="mClose">×</button></div>
+    <p class="hint">仅可合并<b>同单位、同温区</b>的在制样本；按余量比例扣减，来源取尽自动耗尽，合并管保留多父谱系。</p>
+    <form id="mergeForm">
+      <label>选择并入样本（至少再选 1 个）</label>
+      <div class="picklist">
+        <label class="pick"><input type="checkbox" checked disabled><div class="pick-main"><div class="code">${esc(s.code)}</div><div class="sub">${esc(s.name)} · 余量 ${s.volume} ${esc(s.unit)}</div></div></label>
+        ${candidates.map(c => `<label class="pick"><input type="checkbox" class="mpick" value="${esc(c.code)}"><div class="pick-main"><div class="code">${esc(c.code)}</div><div class="sub">${esc(c.name)} · 余量 ${c.volume} ${esc(c.unit)} · ${STATUS_LABEL[c.status]}</div></div></label>`).join('') || '<div class="empty">没有同温区同单位的可合并样本</div>'}
+      </div>
+      <div class="field" style="margin-top:10px"><label for="mfName">合并后样本名称</label><input id="mfName" required value="${esc(s.name)} · 合管"></div>
+      <div class="field-row">
+        <div class="field"><label for="mfPer">合并总量（${esc(s.unit)}，≤ 所选余量之和）</label><input id="mfPer" type="number" min="0" step="any" inputmode="decimal" required value="${s.volume}"></div>
+        <div class="field"><label for="mfTemp">操作温度 °C</label><input id="mfTemp" type="number" step="any" inputmode="decimal" required value="${+((prof.min+prof.max)/2).toFixed(1)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="mfActor">经手人</label><input id="mfActor" required value="${esc(prefs.actor||'')}"></div>
+        <div class="field"><label for="mfLoc">操作位置</label><input id="mfLoc" required value="${esc(prefs.loc||'合并操作台')}"></div>
+      </div>
+      <div class="field"><label for="mfTime">时间</label><input id="mfTime" type="datetime-local" step="1" required value="${nowLocal()}"></div>
+      <div class="modal-actions"><button type="button" class="ghost" id="mCancel">取消</button><button class="primary" type="submit">确认合并</button></div>
+      <div class="error" id="modalError"></div>
+    </form>
+  </div></div>`;
+  $('#mBack').addEventListener('click', e => { if (e.target.id === 'mBack') closeModal(); });
+  $('#mClose').onclick = closeModal; $('#mCancel').onclick = closeModal;
+  document.querySelectorAll('.mpick').forEach(i => i.addEventListener('change', () => {
+    const picked = Array.from(document.querySelectorAll('.mpick:checked')).map(x => x.value);
+    const total = picked.reduce((a,c) => a + (getSample(c)?.volume||0), s.volume);
+    if (num($('#mfPer').value) > total) $('#mfPer').value = +total.toFixed(3);
+  }));
+  $('#mergeForm').onsubmit = e => {
+    e.preventDefault();
+    const picked = [s.code].concat(Array.from(document.querySelectorAll('.mpick:checked')).map(i => i.value));
+    try {
+      const r = doMerge(picked, { name:$('#mfName'), perTotal:$('#mfPer'), temp:$('#mfTemp'), actor:$('#mfActor'), loc:$('#mfLoc'), time:$('#mfTime') });
+      closeModal(); renderAll(); toast(r.ok);
+    } catch(err){ showModalError(err.message); }
+  };
+}
+function showModalError(msg){ const el = $('#modalError'); if (el){ el.textContent = msg; el.classList.add('show'); } else toast(msg,'err'); }
+
+/* ---------------- 偏好 / 导入导出 ---------------- */
+function loadPrefs(){ try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}'); } catch { return {}; } }
+function savePrefs(actor, loc){ try { localStorage.setItem(PREFS_KEY, JSON.stringify({actor, loc})); } catch {} }
+
+function exportJson(){
+  const blob = new Blob([JSON.stringify({ app:'coldchain-audit', version:1, exportedAt:new Date().toISOString(), events }, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'coldchain-audit-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已导出完整事件流（' + events.length + ' 条）');
+}
+function importJson(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      const list = Array.isArray(data) ? data : data.events;
+      if (!Array.isArray(list)) throw new Error('文件格式不正确');
+      const old = events;
+      events = list;
+      const v = verifyChain();
+      events = old;
+      if (!v.ok) throw new Error('导入文件校验链断裂于 ' + v.at + '，拒绝导入');
+      if (!confirm(`导入将覆盖本机全部数据（当前 ${old.length} 条 → 导入 ${list.length} 条）。确定继续？`)) return;
+      events = list;
+      seq = events.reduce((m,e) => Math.max(m, e.seq || 0), 0) + 1;
+      persist(); refresh();
+      selectedCode = null; renderAll();
+      toast('导入成功，校验链完整');
+    } catch(e){ toast('导入失败：' + e.message, 'err'); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------------- 渲染总入口 ---------------- */
+function renderAll(){
+  refresh();
+  renderMetrics();
+  renderFilters();
+  renderList();
+  renderActionPanel();
+  renderDetail();
+  renderAudit();
+}
+
+/* ---------------- 事件绑定 ---------------- */
+function bind(){
+  $('#rProfile').innerHTML = PROFILES.map(p => `<option value="${p.key}"${p.key==='chill'?' selected':''}>${p.name}</option>`).join('');
+  $('#rTime').value = nowLocal();
+
+  $('#regForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const err = $('#regError');
+    try {
+      const msg = doRegister(e.target);
+      e.target.reset();
+      $('#rProfile').value = 'chill';
+      $('#rVolume').value = 10; $('#rTemp').value = 4; $('#rTime').value = nowLocal();
+      renderAll(); toast(msg, msg.includes('越界') ? 'err' : 'ok');
+    } catch(ex){ err.textContent = ex.message; err.classList.add('show'); }
+  });
+
+  document.addEventListener('click', e => {
+    const st = e.target.closest('[data-status]');
+    if (st){ filterStatus = st.dataset.status; renderFilters(); renderList(); return; }
+    const etBtn = e.target.closest('[data-et]');
+    if (etBtn && etBtn.closest('#auditFilters')){
+      auditEt = etBtn.dataset.et;
+      document.querySelectorAll('#auditFilters [data-et]').forEach(b => b.classList.toggle('active', b.dataset.et === auditEt));
+      renderAudit(); return;
+    }
+    const row = e.target.closest('[data-code]');
+    if (row && row.classList.contains('row')){ selectedCode = row.dataset.code; detailTab='lineage'; renderList(); renderActionPanel(); renderDetail(); return; }
+    const jump = e.target.closest('[data-jump]');
+    if (jump){ selectedCode = jump.dataset.jump; renderList(); renderActionPanel(); renderDetail(); return; }
+    const tab = e.target.closest('[data-tab]');
+    if (tab){ detailTab = tab.dataset.tab; renderDetail(); return; }
+  });
+
+  $('#actionPanel').addEventListener('submit', e => {
+    const err = $('#actionError');
+    if (e.target.id === 'actionForm'){
+      e.preventDefault();
+      try {
+        const r = doHandover(selectedCode, { action:$('#aAction'), actor:$('#aActor'), loc:$('#aLoc'), temp:$('#aTemp'), time:$('#aTime'), note:$('#aNote') });
+        renderAll();
+        if (r.warn) toast(r.warn,'err'); else toast(r.ok);
+      } catch(ex){ err.textContent = ex.message; err.classList.add('show'); }
+    }
+    if (e.target.id === 'disposeForm'){
+      e.preventDefault();
+      try {
+        const r = doDispose(selectedCode, { decision:$('#dDecision'), actor:$('#dActor'), loc:$('#dLoc'), temp:$('#dTemp'), time:$('#dTime'), reason:$('#dReason') });
+        renderAll(); toast(r.ok);
+      } catch(ex){ err.textContent = ex.message; err.classList.add('show'); }
+    }
+  });
+  $('#actionPanel').addEventListener('click', e => {
+    if (e.target.id === 'openSplit') openSplitModal();
+    if (e.target.id === 'openMerge') openMergeModal();
+  });
+  $('#actionPanel').addEventListener('change', e => { if (e.target.id === 'aAction'){ $('#actionError')?.classList.remove('show'); updateTempHint(); } });
+
+  const showView = which => {
+    $('#viewSamples').hidden = which !== 'samples';
+    $('#viewAudit').hidden = which !== 'audit';
+    $('#tabSamplesBtn').classList.toggle('primary', which==='samples');
+    $('#tabAuditBtn').classList.toggle('primary', which==='audit');
+    if (which==='audit') renderAudit();
+  };
+  $('#tabSamplesBtn').onclick = () => showView('samples');
+  $('#tabAuditBtn').onclick = () => showView('audit');
+
+  $('#exportBtn').onclick = exportJson;
+  $('#importBtn').onclick = () => $('#importFile').click();
+  $('#importFile').onchange = e => { const f = e.target.files[0]; if (f) importJson(f); e.target.value=''; };
+  $('#resetBtn').onclick = () => {
+    if (!confirm('重置为内置示例数据？本机当前全部审计记录将被覆盖。')) return;
+    events = seedEvents(); seq = events.length + 1; persist();
+    selectedCode = null; refresh(); renderAll(); toast('已重置为示例数据');
+  };
+
+  $('#auditSearch').addEventListener('input', e => { auditQuery = e.target.value; renderAudit(); });
+
+  /* 键盘快捷键：/ 聚焦台账搜索，N 聚焦登记，Esc 关弹窗 */
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input,select,textarea')){ if (e.key === 'Escape') e.target.blur(); return; }
+    if (e.key === '/' && !$('#viewSamples').hidden){ e.preventDefault(); $('#listSearch')?.focus(); }
+    if (e.key.toLowerCase() === 'n' && !$('#viewSamples').hidden){ e.preventDefault(); $('#rName').focus(); }
+    if (e.key === 'Escape') closeModal();
+  });
+
+  showView('samples');
+}
+
+/* ---------------- 启动 ---------------- */
+load();
+bind();
+renderAll();
+</script>
+</body>
+</html>
